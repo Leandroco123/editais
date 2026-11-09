@@ -1,0 +1,45 @@
+name: Atualizar editais
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # todo dia às 03:00 (horário de Brasília)
+  workflow_dispatch:        # botão "Run workflow" para atualizar na hora
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: America/Sao_Paulo
+      SAIDA_APP: site/index.html
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Coletar editais no PNCP e gerar o app
+        run: python editais_pncp.py coletar
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  publicar:
+    needs: coletar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

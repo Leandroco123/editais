@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buscar Editais</title>
+<link rel="icon" href="__FAVICON__">
+<style>
+/* Paleta Leandro Oliveira Advogados: off-white #EFEEE8, preto #0B151C, laranja #D96725 */
+:root{
+  --bg:#efeee8;--card:#ffffff;--ink:#0b151c;--muted:#5e625f;--line:#dcdad2;
+  --accent:#0b151c;--accent-ink:#efeee8;--brand:#d96725;--warn:#b3261e;--warn-bg:#fbe9e7;
+  --soft:#e6e4dc;--chip:#f3f2ed;--ok:#2e6b3a;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0b151c;--card:#121e27;--ink:#efeee8;--muted:#9aa1a3;--line:#22313b;
+    --accent:#d96725;--accent-ink:#0b151c;--brand:#d96725;--warn:#ff8a80;--warn-bg:#3a1f1c;--soft:#15232d;--chip:#1a2832;--ok:#8fd19e}
+}
+.marca{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:16px;margin-bottom:20px;border-bottom:3px solid var(--brand)}
+.marca img{height:64px;width:auto;display:block}
+.marca .logo-escuro{display:none}
+@media (prefers-color-scheme: dark){.marca .logo-claro{display:none}.marca .logo-escuro{display:block}}
+.marca .titulo{text-align:right}
+@media (max-width:560px){.marca{flex-direction:column;align-items:flex-start}.marca .titulo{text-align:left}.marca img{height:52px}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.busca{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+.linha{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+input[type=text]:focus,select:focus{outline:2px solid var(--brand);outline-offset:1px}
+input[type=checkbox]{accent-color:var(--brand)}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+.campo-cidade{flex:1 1 260px}.campo-raio{flex:0 0 120px}.campo-ordem{flex:0 0 150px}.campo-tipo{flex:0 1 280px}
+.dica{font-size:12px;color:var(--muted)}
+mark{background:rgba(217,103,37,.22);color:inherit;border-radius:3px;padding:0 2px}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.resumo{margin:18px 2px 10px;font-size:14px;color:var(--muted)}
+.resumo b{color:var(--ink)}
+.opcoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.opcoes button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.topo{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.local{font-weight:600}
+.dist{color:var(--muted);font-weight:400;font-size:13px;margin-left:6px}
+.prazo{font-size:13px;white-space:nowrap}
+.prazo.urgente{color:var(--warn);font-weight:600}
+.objeto{margin:8px 0;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--muted)}
+.tag.verificar{background:var(--warn-bg);color:var(--warn)}
+.links{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.links a{font-size:13px;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--line);color:var(--ink)}
+.links a.prim{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.vazio{background:var(--soft);border-radius:12px;padding:18px;color:var(--muted)}
+.mais{display:block;margin:14px auto;font:inherit;padding:10px 18px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="marca">
+    <div>
+      <img class="logo-claro" src="__LOGO_CLARO__" alt="Leandro Oliveira Advogados">
+      <img class="logo-escuro" src="__LOGO_ESCURO__" alt="Leandro Oliveira Advogados">
+    </div>
+    <div class="titulo">
+      <h1>Editais abertos</h1>
+      <div class="sub" id="sub" style="margin:0"></div>
+    </div>
+  </header>
+
+  <div class="busca">
+    <div class="linha">
+      <div class="campo-cidade">
+        <label for="cidade">Cidade do lead</label>
+        <input type="text" id="cidade" list="lista-cidades" placeholder="Ex.: Porto Seguro" autocomplete="off" autofocus>
+        <datalist id="lista-cidades"></datalist>
+        <div class="opcoes" id="ambiguas"></div>
+      </div>
+      <div class="campo-raio">
+        <label for="raio">Raio</label>
+        <select id="raio">
+          <option value="30">30 km</option><option value="50">50 km</option>
+          <option value="100" selected>100 km</option><option value="150">150 km</option>
+          <option value="200">200 km</option><option value="300">300 km</option>
+        </select>
+      </div>
+      <div class="campo-ordem">
+        <label for="ordem">Ordenar por</label>
+        <select id="ordem">
+          <option value="dist">Distância</option>
+          <option value="prazo">Prazo mais curto</option>
+          <option value="valor">Maior valor</option>
+        </select>
+      </div>
+    </div>
+    <div class="linha">
+      <div class="campo-cidade">
+        <label for="objeto">Objeto (opcional)</label>
+        <input type="text" id="objeto" placeholder="Ex.: tubos metálicos" autocomplete="off">
+      </div>
+      <div class="campo-tipo">
+        <label for="tipo">Tipo de edital</label>
+        <select id="tipo">
+          <option value="eng">Obras e serviços de engenharia</option>
+          <option value="eng+mat">Engenharia + compras de material</option>
+          <option value="todos">Todos os editais</option>
+        </select>
+      </div>
+    </div>
+    <div class="dica">Cidade e objeto podem ser usados juntos ou separados. No objeto, use vírgula para buscar alternativas: <i>tubo metálico, tubo de aço</i>.</div>
+  </div>
+
+  <div class="resumo" id="resumo"></div>
+  <div id="lista"></div>
+  <button class="mais" id="mais" hidden>Mostrar mais</button>
+</div>
+
+<script>
+const BASE = /*__DADOS__*/null;
+
+const norm = s => (s||"").normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+const R = 6371, rad = x => x*Math.PI/180;
+function dist(a,b){const dl=rad(b[0]-a[0]),dn=rad(b[1]-a[1]);
+  const h=Math.sin(dl/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+const brl = v => v ? Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}) : "valor sigiloso/não informado";
+
+const RE_MATERIAL = /\b(fornecimento|aquisicao|aquisicoes|compra) de\b|\bregistro de precos? para (a )?(eventual |futura |eventual e futura )*aquisic|\bconcessao\b|\bpermissao de uso\b/;
+const RE_OBRA = /\bexecuc|\bobras?\b|\bconstruc|\breforma|\bpavimenta|\bservicos? (especializados? )?de engenharia\b|\binstalac|\bimplantac|\brecuperac/;
+const RE_GENERICO = /^servicos (comuns|especiais)\b/;
+
+// Compra/concessão quando o termo de compra aparece antes de qualquer termo de obra
+// ("fornecimento de equipamentos para construção civil" = compra; "execução das obras ... com fornecimento" = obra)
+function ehMaterial(o){
+  const m = o.search(RE_MATERIAL); if (m < 0) return false;
+  const b = o.search(RE_OBRA); return b < 0 || m < b;
+}
+
+const agora = new Date();
+const editais = BASE.editais.map(e => {
+  const o = norm(e.objeto);
+  const enc = e.encerramento ? new Date(e.encerramento) : null;
+  return {...e, _o:o, _enc:enc,
+    _material: ehMaterial(o),
+    _generico: RE_GENERICO.test(o) && o.length < 90};
+}).filter(e => !e._enc || e._enc >= agora);
+
+const cidades = BASE.municipios; // [nome, uf, lat, lon]
+const porNome = new Map();
+for (const c of cidades){ const k=norm(c[0]); if(!porNome.has(k)) porNome.set(k,[]); porNome.get(k).push(c); }
+
+const $ = id => document.getElementById(id);
+$("sub").textContent = `${editais.length.toLocaleString("pt-BR")} editais com prazo aberto em ${BASE.ufs.join(", ")} (${editais.filter(e=>e.eng).length.toLocaleString("pt-BR")} de engenharia) · base atualizada em ${BASE.atualizado}`;
+$("lista-cidades").innerHTML = cidades.map(c => `<option value="${c[0]} - ${c[1]}">`).join("");
+
+let origem = null, pagina = 1;
+const POR_PAGINA = 30;
+
+function resolverCidade(txt){
+  $("ambiguas").innerHTML = "";
+  const m = txt.match(/^(.*?)\s*[-\/,]\s*([A-Za-z]{2})$/);
+  let nome = m ? m[1] : txt, uf = m ? m[2].toUpperCase() : null;
+  const cand = porNome.get(norm(nome)) || [];
+  const achado = uf ? cand.filter(c => c[1]===uf) : cand;
+  if (achado.length === 1) return achado[0];
+  if (achado.length > 1){
+    $("ambiguas").innerHTML = achado.map(c => `<button data-v="${c[0]} - ${c[1]}">${c[0]} - ${c[1]}</button>`).join("");
+  }
+  return null;
+}
+
+function diasAte(d){ return Math.ceil((d - agora)/86400000); }
+function textoPrazo(e){
+  if(!e._enc) return {t:"prazo não informado",u:false};
+  const d = diasAte(e._enc), data = e._enc.toLocaleDateString("pt-BR");
+  const hora = e._enc.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  const quando = d<=0 ? "hoje" : d===1 ? "amanhã" : `em ${d} dias`;
+  return {t:`Propostas até ${data} ${hora} (${quando})`, u:d<=3};
+}
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const STOP = new Set(["de","da","do","das","dos","e","para","com","em","a","o","as","os","no","na","nos","nas","por"]);
+function radical(w){ if (w.length>3 && w.endsWith("s")) w = w.slice(0,-1); if (w.length>5 && /[aeo]$/.test(w)) w = w.slice(0,-1); return w; }
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// Alternativas separadas por vírgula; dentro de cada uma, todas as palavras precisam aparecer
+function montarBusca(txt){
+  return norm(txt).split(/[,;]/).map(alt => alt.split(" ").filter(w => w && !STOP.has(w)).map(radical))
+    .filter(ws => ws.length).map(ws => ws.map(w => new RegExp("(^|[^a-z0-9])" + escRe(w))));
+}
+const casa = (o, busca) => !busca.length || busca.some(ws => ws.every(re => re.test(o)));
+const VAR = {a:"aáàâã",e:"eéê",i:"ií",o:"oóôõ",u:"uúü",c:"cç"};
+function destacar(texto, termoTxt){
+  let html = esc(texto);
+  const stems = [...new Set(norm(termoTxt).split(/[ ,;]+/).filter(w => w && !STOP.has(w)).map(radical))];
+  if (!stems.length) return html;
+  const pad = stems.map(w => [...escRe(w)].map(ch => VAR[ch] ? `[${VAR[ch]}]` : ch).join("") + "[\\p{L}]*").join("|");
+  return html.replace(new RegExp(`(^|[^\\p{L}])(${pad})`, "giu"), (m, pre, w) => `${pre}<mark>${w}</mark>`);
+}
+
+let tipoManual = false;
+function render(){
+  const lista = $("lista");
+  const objTxt = $("objeto").value.trim();
+  const busca = montarBusca(objTxt);
+  if(!origem && !busca.length){
+    $("resumo").innerHTML = "";
+    lista.innerHTML = `<div class="vazio">Digite a cidade do lead e/ou o objeto procurado. Com cidade, os editais aparecem ordenados pela distância.</div>`;
+    $("mais").hidden = true; return;
+  }
+  const raio = +$("raio").value, tipo = $("tipo").value;
+  let res = [], foraTipo = 0;
+  for (const e of editais){
+    let d = null;
+    if (origem){
+      if (e.lat==null) continue;
+      d = dist([origem[2],origem[3]],[e.lat,e.lon]);
+      if (d > raio) continue;
+    }
+    if (!casa(e._o, busca)) continue;
+    const ok = tipo==="todos" || (e.eng && (tipo==="eng+mat" || !e._material));
+    if (!ok){ foraTipo++; continue; }
+    res.push({...e, _d:d});
+  }
+  let ord = $("ordem").value;
+  if (!origem && ord==="dist") ord = "prazo";
+  res.sort(ord==="prazo" ? (a,b)=>(a._enc||Infinity)-(b._enc||Infinity)
+          : ord==="valor" ? (a,b)=>(b.valor||0)-(a.valor||0)
+          : (a,b)=>a._d-b._d || (a._enc||0)-(b._enc||0));
+  const total = res.reduce((s,e)=>s+(+e.valor||0),0);
+  const onde = origem ? ` até ${raio} km de <b>${esc(origem[0])} - ${origem[1]}</b>` : ` em ${BASE.ufs.join(", ")}`;
+  const oque = busca.length ? ` com “<b>${esc(objTxt)}</b>”` : "";
+  const nomeTipo = {eng:" de engenharia", "eng+mat":" de engenharia e compras de material", todos:""}[tipo];
+  const dicaTipo = foraTipo && tipo!=="todos"
+    ? ` · <a href="#" id="verTodos">ver mais ${foraTipo} em “Todos os editais”</a>` : "";
+  $("resumo").innerHTML = res.length
+    ? `<b>${res.length}</b> editais${nomeTipo}${oque}${onde} · soma estimada ${brl(total)}${dicaTipo}`
+    : "";
+  if(!res.length){
+    lista.innerHTML = `<div class="vazio">Nenhum edital${nomeTipo}${oque}${onde}.`
+      + (foraTipo && tipo!=="todos" ? ` Há <a href="#" id="verTodos">${foraTipo} em “Todos os editais”</a>.` : origem ? " Tente um raio maior." : "")
+      + `</div>`;
+    $("mais").hidden = true; ligarVerTodos(); return;
+  }
+  const vis = res.slice(0, pagina*POR_PAGINA);
+  lista.innerHTML = vis.map(e => {
+    const p = textoPrazo(e);
+    const distTxt = e._d==null ? "" : `<span class="dist">${e._d<1?"na cidade":Math.round(e._d)+" km"}</span>`;
+    return `<div class="card">
+      <div class="topo">
+        <div class="local">${esc(e.municipio)} - ${e.uf}${distTxt}</div>
+        <div class="prazo ${p.u?"urgente":""}">${p.t}</div>
+      </div>
+      <div class="objeto">${destacar(e.objeto, objTxt)}</div>
+      <div class="meta"><span>${esc(e.orgao)}</span><span>${brl(e.valor)}</span><span>${esc(e.modalidade)}</span></div>
+      <div class="tags">
+        ${e._generico?'<span class="tag verificar">Objeto genérico: verificar no edital</span>':""}
+        ${e.eng && e._material?'<span class="tag">Possível compra de material/concessão</span>':""}
+        ${!e.eng?'<span class="tag">Fora de engenharia</span>':""}
+      </div>
+      <div class="links">
+        ${e.link_pncp?`<a class="prim" href="${esc(e.link_pncp)}" target="_blank" rel="noopener">Abrir no PNCP</a>`:""}
+        ${e.link_origem?`<a href="${esc(e.link_origem)}" target="_blank" rel="noopener">Sistema de origem</a>`:""}
+      </div>
+    </div>`;
+  }).join("");
+  $("mais").hidden = vis.length >= res.length;
+  $("mais").textContent = `Mostrar mais (${res.length - vis.length} restantes)`;
+  ligarVerTodos();
+}
+function ligarVerTodos(){
+  const a = document.getElementById("verTodos");
+  if (a) a.addEventListener("click", ev => { ev.preventDefault(); $("tipo").value = "todos"; tipoManual = true; pagina = 1; render(); });
+}
+
+function aoDigitar(){
+  const c = resolverCidade($("cidade").value.trim());
+  if (c || !$("cidade").value.trim()){ origem = c; pagina = 1; render(); }
+}
+let tObj;
+$("objeto").addEventListener("input", () => {
+  // Quem busca um item específico (ex.: tubos) quase sempre quer compras também
+  if (!tipoManual && $("objeto").value.trim() && $("tipo").value === "eng") $("tipo").value = "todos";
+  if (!tipoManual && !$("objeto").value.trim()) $("tipo").value = "eng";
+  clearTimeout(tObj); tObj = setTimeout(()=>{ pagina = 1; render(); }, 150);
+});
+$("tipo").addEventListener("change", () => { tipoManual = true; });
+$("cidade").addEventListener("input", aoDigitar);
+$("cidade").addEventListener("change", aoDigitar);
+$("ambiguas").addEventListener("click", ev => {
+  const v = ev.target.dataset && ev.target.dataset.v; if(!v) return;
+  $("cidade").value = v; aoDigitar();
+});
+for (const id of ["raio","ordem","tipo"]) $(id).addEventListener("change", ()=>{pagina=1;render();});
+$("mais").addEventListener("click", ()=>{pagina++;render();});
+render();
+</script>
+</body>
+</html>

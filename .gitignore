@@ -1,0 +1,7 @@
+# Dados gerados pela coleta (o GitHub gera os seus a cada execução)
+editais_engenharia.csv
+municipios_sem_coordenada.csv
+site/
+__pycache__/
+.DS_Store
+icone_app.png
