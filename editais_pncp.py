@@ -4,7 +4,8 @@ Sem dependências externas (só biblioteca padrão; Python 3.9+).
 
 Uso:
     python3 editais_pncp.py coletar            # baixa do PNCP e atualiza 'Buscar Editais.html'
-    python3 editais_pncp.py app                # só regera 'Buscar Editais.html'
+    python3 editais_pncp.py app                # só regera 'Buscar Editais.html' e 'estudo.html'
+    python3 editais_pncp.py estudo             # só regera 'estudo.html' (estudo de mercado para o lead)
     python3 editais_pncp.py atualizar_coords   # reaplica municipios_coords.csv sem recoletar
     python3 editais_pncp.py entorno BA "Porto Seguro" 100
 """
@@ -287,6 +288,34 @@ def gerar_app() -> None:
     ARQUIVO_APP.parent.mkdir(parents=True, exist_ok=True)
     ARQUIVO_APP.write_text(html, encoding="utf-8")
     print(f"App atualizado: {ARQUIVO_APP}")
+    gerar_estudo()
+
+
+ARQUIVO_TEMPLATE_ESTUDO = BASE / "estudo_template.html"
+ARQUIVO_ESTUDO = ARQUIVO_APP.parent / "estudo.html"
+
+
+def gerar_estudo() -> None:
+    """Gera 'estudo.html' ao lado do app: monta o estudo para o lead consultando o PNCP ao vivo."""
+    import base64
+    municipios = []
+    with open(ARQUIVO_COORDS, encoding="utf-8-sig") as f:
+        for r in csv.DictReader(f, delimiter=";"):
+            if r.get("codigo_ibge") and r.get("lat") and r.get("lon"):
+                municipios.append([r["municipio"], r["uf"], r["codigo_ibge"],
+                                   round(float(r["lat"]), 4), round(float(r["lon"]), 4)])
+    municipios.sort(key=lambda m: (normalizar(m[0]), m[1]))
+    js = json.dumps(municipios, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    html = ARQUIVO_TEMPLATE_ESTUDO.read_text(encoding="utf-8").replace("/*__MUNICIPIOS__*/null", js)
+    for marcador, arquivo in (("__LOGO_CLARO__", "logo_claro.png"), ("__LOGO_ESCURO__", "logo_escuro.png"),
+                              ("__FAVICON__", "favicon.png")):
+        caminho = BASE / arquivo
+        uri = "data:image/png;base64," + base64.b64encode(caminho.read_bytes()).decode() if caminho.exists() else ""
+        html = html.replace(marcador, uri)
+    # No Mac o app se chama 'Buscar Editais.html'; no site, index.html
+    html = html.replace('href="./index.html"', f'href="./{urllib.parse.quote(ARQUIVO_APP.name)}"')
+    ARQUIVO_ESTUDO.write_text(html, encoding="utf-8")
+    print(f"Estudo atualizado: {ARQUIVO_ESTUDO}")
 
 
 def consultar_entorno(uf_lead: str, cidade_lead: str, raio_km: float = 100) -> list:
@@ -319,6 +348,8 @@ if __name__ == "__main__":
         gerar_app()
     elif cmd == "app":
         gerar_app()
+    elif cmd == "estudo":
+        gerar_estudo()
     elif cmd == "entorno":
         uf, cidade = sys.argv[2], sys.argv[3]
         raio = float(sys.argv[4]) if len(sys.argv) > 4 else 100

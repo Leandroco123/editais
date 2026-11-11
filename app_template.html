@@ -112,6 +112,7 @@ mark{background:rgba(217,103,37,.22);color:inherit;border-radius:3px;padding:0 2
       </div>
     </div>
     <div class="dica">Cidade e objeto podem ser usados juntos ou separados. No objeto, use vírgula para buscar alternativas: <i>tubo metálico, tubo de aço</i>.</div>
+    <div class="links" style="margin-top:0"><a class="prim" id="linkEstudo" href="estudo.html">Gerar estudo para enviar ao lead →</a></div>
   </div>
 
   <div class="resumo" id="resumo"></div>
@@ -201,7 +202,16 @@ function destacar(texto, termoTxt){
 }
 
 let tipoManual = false;
+function atualizarLinkEstudo(){
+  const p = new URLSearchParams();
+  if (origem){ p.set("cidade", origem[0]); p.set("uf", origem[1]); p.set("raio", $("raio").value); }
+  const obj = $("objeto").value.trim();
+  if (obj){ p.set("termos", obj); p.set("ramo", obj.split(/[,;]/)[0].trim()); }
+  const qs = p.toString();
+  $("linkEstudo").href = "estudo.html" + (qs ? "?" + qs : "");
+}
 function render(){
+  atualizarLinkEstudo();
   const lista = $("lista");
   const objTxt = $("objeto").value.trim();
   const busca = montarBusca(objTxt);

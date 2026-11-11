@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudo para Lead</title>
+<link rel="icon" href="__FAVICON__">
+<style>
+/* Paleta Leandro Oliveira Advogados: off-white #EFEEE8, preto #0B151C, laranja #D96725 */
+:root{
+  --bg:#efeee8;--card:#ffffff;--ink:#0b151c;--muted:#5e625f;--line:#dcdad2;
+  --accent:#0b151c;--accent-ink:#efeee8;--brand:#d96725;--warn:#b3261e;--soft:#e6e4dc;--chip:#f3f2ed;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0b151c;--card:#121e27;--ink:#efeee8;--muted:#9aa1a3;--line:#22313b;
+    --accent:#d96725;--accent-ink:#0b151c;--brand:#d96725;--warn:#ff8a80;--soft:#15232d;--chip:#1a2832}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 64px}
+.marca{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:16px;margin-bottom:20px;border-bottom:3px solid var(--brand)}
+.marca img{height:64px;width:auto;display:block}
+.marca .logo-escuro{display:none}
+@media (prefers-color-scheme: dark){.marca .logo-claro{display:none}.marca .logo-escuro{display:block}}
+.marca .titulo{text-align:right}
+.marca a{color:var(--muted);font-size:13px}
+@media (max-width:560px){.marca{flex-direction:column;align-items:flex-start}.marca .titulo{text-align:left}.marca img{height:52px}}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px}
+.painel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+.linha{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.linha>div{flex:1 1 200px}
+.linha>.estreito{flex:0 0 130px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+input[type=text],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+textarea{min-height:60px;resize:vertical}
+.dica{font-size:12px;color:var(--muted)}
+.opcoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.opcoes button,.leads button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.opcoes button.on{border-color:var(--brand);color:var(--brand)}
+.btn{font:inherit;font-weight:600;padding:10px 18px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-block}
+.btn.prim{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.prog{margin-top:14px;font-size:13px;color:var(--muted)}
+.barra{height:6px;background:var(--soft);border-radius:6px;overflow:hidden;margin-top:6px}
+.barra i{display:block;height:100%;width:0;background:var(--brand);transition:width .3s}
+.erro{color:var(--warn)}
+.leads{display:flex;flex-wrap:wrap;gap:6px}
+.leads span{display:inline-flex;gap:2px}
+.leads .x{padding:5px 8px;color:var(--muted)}
+#saida{margin-top:18px;display:none}
+#saida.on{display:block}
+#preview{width:100%;height:640px;border:1px solid var(--line);border-radius:12px;background:#0b151c;margin-top:12px}
+#msg{min-height:150px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="marca">
+    <div>
+      <img class="logo-claro" src="__LOGO_CLARO__" alt="Leandro Oliveira Advogados">
+      <img class="logo-escuro" src="__LOGO_ESCURO__" alt="Leandro Oliveira Advogados">
+    </div>
+    <div class="titulo">
+      <h1>Estudo de oportunidades para o lead</h1>
+      <div class="sub">Dados ao vivo do PNCP · <a href="./index.html" id="voltar">voltar para Buscar Editais</a></div>
+    </div>
+  </header>
+
+  <div class="painel">
+    <div class="linha">
+      <div><label for="lead">Empresa do lead</label><input type="text" id="lead" placeholder="Ex.: Metalúrgica Silva Ltda." autocomplete="off"></div>
+      <div><label for="contato">Nome do contato (opcional)</label><input type="text" id="contato" placeholder="Ex.: João" autocomplete="off"></div>
+    </div>
+    <div class="linha">
+      <div><label for="cidade">Cidade do lead</label>
+        <input type="text" id="cidade" list="lista-cidades" placeholder="Ex.: Campinas - SP" autocomplete="off">
+        <datalist id="lista-cidades"></datalist>
+        <div class="opcoes" id="ambiguas"></div>
+      </div>
+      <div class="estreito"><label for="raio">Raio</label>
+        <select id="raio"><option value="50">50 km</option><option value="100" selected>100 km</option><option value="150">150 km</option><option value="200">200 km</option><option value="300">300 km</option></select></div>
+      <div class="estreito"><label for="meses">Histórico</label>
+        <select id="meses"><option value="3">3 meses</option><option value="6" selected>6 meses</option><option value="12">12 meses</option></select></div>
+    </div>
+    <div>
+      <label>Ramo do lead</label>
+      <div class="opcoes" id="presets"></div>
+    </div>
+    <div class="linha">
+      <div><label for="ramo">Nome do ramo (aparece no título)</label><input type="text" id="ramo" placeholder="Ex.: estrutura metálica e cobertura" autocomplete="off"></div>
+    </div>
+    <div>
+      <label for="termos">Termos de busca, separados por vírgula</label>
+      <textarea id="termos" placeholder="Ex.: estrutura metálica, cobertura metálica, galpão, telhado"></textarea>
+      <div class="dica">Cada termo vira uma busca no PNCP. Dentro de um termo, as palavras precisam aparecer próximas e na ordem (“cobertura quadra” pega “cobertura da quadra”).</div>
+    </div>
+    <div>
+      <label for="excluir">Ignorar objetos que tenham (separados por vírgula)</label>
+      <input type="text" id="excluir" value="locação, evento, festividade, tenda, palco, imóvel, seguro" autocomplete="off">
+    </div>
+    <div class="acoes">
+      <button class="btn prim" id="gerar">Gerar estudo</button>
+      <button class="btn" id="salvar">Salvar lead</button>
+      <span class="dica">Leva de 30 s a alguns minutos, conforme o número de termos e de estados no raio.</span>
+    </div>
+    <div id="boxLeads" hidden><label>Leads salvos neste navegador</label><div class="leads" id="leads"></div></div>
+    <div class="prog" id="prog" hidden><span id="progTxt"></span><div class="barra"><i id="progBar"></i></div></div>
+  </div>
+
+  <div id="saida">
+    <div class="acoes">
+      <button class="btn prim" id="baixar">Baixar HTML para enviar</button>
+      <button class="btn" id="abrir">Abrir em tela cheia</button>
+      <button class="btn" id="pdf">Imprimir / PDF</button>
+    </div>
+    <iframe id="preview" title="Prévia do estudo"></iframe>
+    <div class="painel" style="margin-top:12px">
+      <label for="msg">Mensagem sugerida para o WhatsApp (envie junto com o arquivo)</label>
+      <textarea id="msg"></textarea>
+      <div class="acoes"><button class="btn" id="copiar">Copiar mensagem</button><span class="dica" id="copiado"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MUN = /*__MUNICIPIOS__*/null; // [nome, uf, ibge, lat, lon]
+const LOGO = "__LOGO_ESCURO__";
+const API = "https://pncp.gov.br/api/search/";
+
+const PRESETS = {
+  "Estrutura metálica e cobertura": "estrutura metálica, cobertura metálica, galpão, telhado, cobertura de quadra, abrigo de ônibus, mezanino",
+  "Serralheria e gradil": "serralheria, gradil, alambrado, portão, grade de proteção, corrimão",
+  "Tubos e tubulação": "tubo de aço, tubo galvanizado, tubulação, tubo de ferro, ferro fundido",
+  "Obras e reformas": "construção, reforma, ampliação, obra de engenharia",
+  "Pavimentação": "pavimentação, recapeamento, asfalto, tapa-buraco, calçamento",
+  "Mobiliário": "mobiliário, móveis, cadeira, mesa, armário, estante",
+  "Inox e cozinha industrial": "inox, cozinha industrial, fogão industrial, coifa, bancada",
+  "Limpeza e conservação": "limpeza, conservação, material de limpeza, higiene",
+  "Alimentação": "gêneros alimentícios, merenda, alimentação escolar, refeição",
+  "Informática": "computador, notebook, impressora, software, informática",
+  "Saúde e hospitalar": "material hospitalar, medicamento, equipamento médico",
+  "Uniformes e têxtil": "uniforme, camiseta, jaleco, enxoval",
+};
+
+const $ = id => document.getElementById(id);
+const norm = s => (s||"").normalize("NFKD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rad = x => x*Math.PI/180;
+function dist(a,b){const dl=rad(b[0]-a[0]),dn=rad(b[1]-a[1]);
+  const h=Math.sin(dl/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dn/2)**2;return 2*6371*Math.asin(Math.sqrt(h));}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ---------- municípios ----------
+const porNome = new Map(), porIbge = new Map();
+for (const m of MUN){ const k=norm(m[0]); if(!porNome.has(k)) porNome.set(k,[]); porNome.get(k).push(m); porIbge.set(String(m[2]), m); }
+$("lista-cidades").innerHTML = MUN.map(c => `<option value="${esc(c[0])} - ${c[1]}">`).join("");
+let origem = null;
+function resolverCidade(txt){
+  $("ambiguas").innerHTML = "";
+  const m = txt.match(/^(.*?)\s*[-\/,]\s*([A-Za-z]{2})$/);
+  const nome = m ? m[1] : txt, uf = m ? m[2].toUpperCase() : null;
+  const cand = porNome.get(norm(nome)) || [];
+  const achado = uf ? cand.filter(c => c[1]===uf) : cand;
+  if (achado.length === 1) return achado[0];
+  if (achado.length > 1) $("ambiguas").innerHTML = achado.map(c => `<button data-v="${esc(c[0])} - ${c[1]}">${esc(c[0])} - ${c[1]}</button>`).join("");
+  return null;
+}
+function aoDigitarCidade(){ origem = resolverCidade($("cidade").value.trim()); }
+$("cidade").addEventListener("input", aoDigitarCidade);
+$("cidade").addEventListener("change", aoDigitarCidade);
+$("ambiguas").addEventListener("click", ev => { const v = ev.target.dataset.v; if (v){ $("cidade").value = v; aoDigitarCidade(); } });
+
+// ---------- presets ----------
+$("presets").innerHTML = Object.keys(PRESETS).map(k => `<button data-k="${esc(k)}">${esc(k)}</button>`).join("");
+$("presets").addEventListener("click", ev => {
+  const k = ev.target.dataset.k; if (!k) return;
+  $("termos").value = PRESETS[k]; $("ramo").value = k.toLowerCase();
+  [...$("presets").children].forEach(b => b.classList.toggle("on", b.dataset.k === k));
+});
+
+// ---------- busca por termo (mesma regra do Buscar Editais) ----------
+const STOP = new Set(["de","da","do","das","dos","e","para","com","em","a","o","as","os","no","na","nos","nas","por"]);
+function radical(w){ if (w.length>3 && w.endsWith("s")) w = w.slice(0,-1); if (w.length>5 && /[aeo]$/.test(w)) w = w.slice(0,-1); return w; }
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// Palavras de um mesmo termo precisam aparecer na ordem e próximas (até 4 palavras entre elas):
+// "estrutura metálica" pega "estrutura em aço metálica", mas não "estrutura ... (200 letras) ... metálica"
+function termosDe(txt){
+  return txt.split(/[,;\n]/).map(t => t.trim()).filter(Boolean).map(t => {
+    const ws = norm(t).split(/[ \-\/]+/).filter(w => w && !STOP.has(w)).map(radical).map(escRe);
+    if (!ws.length) return null;
+    return {txt: t, re: new RegExp("(^|[^a-z0-9])" + ws.join("[a-z0-9]*(?:[^a-z0-9]+[a-z0-9]+){0,4}?[^a-z0-9]+"))};
+  }).filter(Boolean);
+}
+const casaTermo = (o, t) => t.re.test(o);
+let EXCLUIR = [];
+const excluido = o => EXCLUIR.some(t => t.re.test(o));
+
+// ---------- API ----------
+let reqs = 0;
+async function pncp(params){
+  const url = API + "?" + new URLSearchParams(params).toString();
+  for (let i = 0; i < 6; i++){
+    try {
+      const r = await fetch(url, {headers:{Accept:"application/json"}});
+      if (r.status === 204) return {items:[], total:0};
+      if (r.ok){ reqs++; await sleep(350); return await r.json(); }
+      if (r.status < 500 && r.status !== 429) throw new Error("PNCP respondeu " + r.status);
+    } catch (e) { if (String(e.message).startsWith("PNCP respondeu")) throw e; }
+    await sleep(1500 * 2 ** i);
+  }
+  throw new Error("O PNCP não respondeu depois de várias tentativas. Tente de novo em alguns minutos.");
+}
+
+function progresso(feito, total, txt){
+  $("prog").hidden = false;
+  $("progTxt").textContent = txt;
+  $("progBar").style.width = Math.min(100, Math.round(100*feito/Math.max(1,total))) + "%";
+}
+
+const TAM = 100, MAX_PAG_ABERTAS = 10, MAX_PAG_CONTRATOS = 25;
+
+// O PNCP aceita vários municípios (código IBGE) ou UFs separados por "|"
+const LOTE_MUN = 120;
+function lotes(arr, n){ const r = []; for (let i = 0; i < arr.length; i += n) r.push(arr.slice(i, i + n)); return r; }
+
+async function coletar(cfg){
+  const {termos, ufs, ibgeRaio, corte} = cfg;
+  const abertas = new Map(), contratos = new Map();
+  const grupos = lotes([...ibgeRaio], LOTE_MUN).map(l => l.join("|"));
+  const passos = termos.length * (grupos.length * 2 + 1);
+  let feito = 0, limitados = 0;
+  const agora = new Date();
+  const guardarAberta = (it, t) => {
+    const o = norm(it.description);
+    if (it.cancelado || !casaTermo(o, t) || excluido(o)) return;
+    const fim = it.data_fim_vigencia ? new Date(it.data_fim_vigencia) : null;
+    if (fim && fim < agora) return;
+    const k = it.numero_controle_pncp || it.id, ex = abertas.get(k);
+    if (ex) ex.termos.add(t.txt); else abertas.set(k, {...it, termos:new Set([t.txt])});
+  };
+  async function paginar(params, maxPag, rotulo, aoItem, parar){
+    for (let p = 1; p <= maxPag; p++){
+      progresso(feito, passos, rotulo + (p > 1 ? ` (página ${p})` : ""));
+      const d = await pncp({...params, ordenacao:"-data", pagina:p, tam_pagina:TAM});
+      const items = d.items || [];
+      items.forEach(aoItem);
+      if (items.length < TAM || (parar && parar(items))) return;
+      if (p === maxPag) limitados++;
+    }
+  }
+  for (const t of termos){
+    // 1) Editais recebendo proposta nos municípios do raio
+    for (const g of grupos){
+      await paginar({q:t.txt, tipos_documento:"edital", status:"recebendo_proposta", municipios:g}, MAX_PAG_ABERTAS,
+        `Editais abertos no raio: “${t.txt}”`, it => guardarAberta(it, t));
+      feito++;
+    }
+    // 2) Editais abertos no restante dos estados (contexto)
+    await paginar({q:t.txt, tipos_documento:"edital", status:"recebendo_proposta", ufs:ufs.join("|")}, 3,
+      `Editais abertos em ${ufs.join(", ")}: “${t.txt}”`, it => { if (ufs.includes(it.uf)) guardarAberta(it, t); });
+    feito++;
+    // 3) Contratos assinados no período, nos municípios do raio
+    for (const g of grupos){
+      await paginar({q:t.txt, tipos_documento:"contrato", municipios:g}, MAX_PAG_CONTRATOS,
+        `Contratos dos últimos meses: “${t.txt}”`,
+        it => {
+          const data = new Date(it.data_assinatura || it.data_publicacao_pncp);
+          if (data < corte || it.cancelado || !ibgeRaio.has(String(it.codigo_ibge))) return;
+          const o = norm(it.description);
+          if (!casaTermo(o, t) || excluido(o)) return;
+          const k = it.numero_controle_pncp || it.id, ex = contratos.get(k);
+          if (ex) ex.termos.add(t.txt); else contratos.set(k, {...it, termos:new Set([t.txt]), _data:data});
+        },
+        items => items.filter(it => new Date(it.data_publicacao_pncp) < corte).length > items.length * 0.8);
+      feito++;
+    }
+  }
+  progresso(passos, passos, `Concluído: ${reqs} consultas ao PNCP.`);
+  return {abertas:[...abertas.values()], contratos:[...contratos.values()], limitados};
+}
+
+// ---------- formatação ----------
+const fmtN = n => Number(n||0).toLocaleString("pt-BR");
+function mi(v){
+  v = +v || 0;
+  if (v >= 1e6) return "R$ " + (v/1e6).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " mi";
+  if (v >= 1e3) return "R$ " + Math.round(v/1e3).toLocaleString("pt-BR") + " mil";
+  return v ? "R$ " + Math.round(v).toLocaleString("pt-BR") : "sem valor divulgado";
+}
+const dm = d => d ? new Date(d).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) : "—";
+const dmy = d => new Date(d).toLocaleDateString("pt-BR");
+const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const corta = (s, n) => { s = String(s||"").replace(/\s+/g," ").trim(); return s.length > n ? s.slice(0, n-3).trim() + "..." : s; };
+const titulo = s => String(s||"").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m,a,b) => a + b.toUpperCase()).replace(/\b(De|Da|Do|Das|Dos|E)\b/g, w => w.toLowerCase());
+function linkPncp(it){
+  const u = it.item_url || "";
+  if (u.startsWith("/compras/")) return "https://pncp.gov.br/app/editais/" + u.slice(9);
+  if (u.startsWith("/contratos/")) return "https://pncp.gov.br/app/contratos/" + u.slice(11);
+  return "https://pncp.gov.br/app" + u;
+}
+const valorAberta = it => +it.valor_total_estimado || 0;
+const valorContrato = it => +it.valor_global || +it.valor_total_homologado || +it.valor_total_estimado || 0;
+const soma = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
+function mediana(xs){ xs = xs.filter(x => x > 0).sort((a,b)=>a-b); if (!xs.length) return 0; const m = xs.length >> 1; return xs.length % 2 ? xs[m] : (xs[m-1]+xs[m])/2; }
+function agrupar(arr, chave, valor){
+  const m = new Map();
+  for (const x of arr){ const k = chave(x) || "Não informado"; const g = m.get(k) || {k, n:0, v:0}; g.n++; g.v += valor(x); m.set(k, g); }
+  return [...m.values()];
+}
+function barras(grupos, rotuloValor){
+  const max = Math.max(1, ...grupos.map(g => g.n));
+  return `<div class="bars">${grupos.map(g => `<div class="bar"><span>${esc(g.k)}</span><i style="width:${Math.max(1, 100*g.n/max)}%"></i><span>${fmtN(g.n)} · ${rotuloValor(g)}</span></div>`).join("")}</div>`;
+}
+function colunas(grupos){
+  const max = Math.max(1, ...grupos.map(g => g.n));
+  return `<div class="cols">${grupos.map(g => `<div class="col"><b>${g.n}</b><i style="height:${Math.max(2, 85*g.n/max)}%"></i><span>${esc(g.k)}</span></div>`).join("")}</div>`;
+}
+
+// ---------- deck ----------
+const CSS_DECK = `:root{--bg:#0B151C;--surf:#10202A;--acc:#D96725;--acct:#E8935F;--ink:#EFEEE8;--mute:#B4BEC3;--line:#263640}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'Public Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;overflow:hidden}
+.slide{position:absolute;inset:0;padding:3rem 5rem 5.5rem;overflow-y:auto;opacity:0;transform:translateX(36px);transition:opacity .4s,transform .4s;pointer-events:none}
+.slide.on{opacity:1;transform:none;pointer-events:auto;z-index:2}.slide.prev{transform:translateX(-36px)}
+.in{max-width:1180px;margin:0 auto;display:grid;gap:1.4rem;align-content:start}
+.eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--acct)}
+h1{font-family:'Arial Black',Arial,sans-serif;font-size:3rem;line-height:1.08;letter-spacing:-.02em;max-width:22ch}h1 em{font-style:normal;color:var(--acc)}
+h2{font-family:'Arial Black',Arial,sans-serif;font-size:1.9rem;line-height:1.15;letter-spacing:-.01em;max-width:32ch}
+.lead{font-size:1.1rem;line-height:1.6;color:var(--mute);max-width:72ch}
+.logo{height:46px;width:auto;justify-self:start}
+.row{display:grid;gap:1rem}.r2{grid-template-columns:1fr 1fr}.r3{grid-template-columns:repeat(3,1fr)}.r4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.4rem}
+.card h3{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:800}
+.big{font-family:'Arial Black',Arial,sans-serif;font-size:2.6rem;line-height:1;margin-top:.5rem;color:var(--ink)}.big.acc{color:var(--acc)}
+.sub{font-size:.9rem;color:var(--mute);margin-top:.5rem;line-height:1.45}
+.hero{background:linear-gradient(135deg,#D96725,#A94B14);border-radius:16px;padding:1.6rem 1.8rem}.hero .big{color:#fff;font-size:3.2rem}.hero h3,.hero .sub{color:rgba(255,255,255,.85)}
+ul.l{list-style:none;display:grid;gap:.7rem}ul.l li{padding-left:1.3rem;position:relative;line-height:1.5;color:var(--ink)}ul.l li::before{content:"";position:absolute;left:0;top:.6em;width:7px;height:7px;background:var(--acc);border-radius:50%}
+table{width:100%;border-collapse:collapse;font-size:.78rem}th{text-align:left;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:.5rem .6rem;border-bottom:1px solid var(--line)}td{padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}td.n,th.n{text-align:right;white-space:nowrap}
+td a{color:var(--acct);text-decoration:none;font-weight:700}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.bars{display:grid;gap:.55rem}.bar{display:grid;grid-template-columns:180px minmax(0,1fr) 150px;gap:.8rem;align-items:center;font-size:.85rem}.bar i{display:block;height:14px;border-radius:4px;background:var(--acc);min-width:3px}.bar span{min-width:0;overflow-wrap:anywhere}.bar span:last-child{text-align:right;color:var(--mute)}
+.cols{display:flex;align-items:flex-end;gap:.9rem;height:220px;padding-top:1rem}.col{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:.4rem;height:100%}.col i{display:block;width:100%;background:var(--acc);border-radius:6px 6px 0 0;min-height:3px}.col b{font-size:.78rem}.col span{font-size:.72rem;color:var(--mute);text-align:center;overflow-wrap:anywhere}
+.note{font-size:.82rem;color:var(--mute);line-height:1.5;border-left:3px solid var(--acc);padding-left:.9rem;max-width:90ch}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.6rem;background:linear-gradient(transparent,var(--bg) 40%)}
+.foot button{background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:100px;padding:.5rem 1.1rem;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}.foot button:hover{border-color:var(--acc)}
+#cnt{font-size:.8rem;color:var(--mute);letter-spacing:.12em}
+#idx{position:fixed;inset:0;background:rgba(11,21,28,.97);z-index:9;display:none;padding:3rem 5rem;overflow:auto}#idx.on{display:block}#idx a{display:block;padding:.55rem 0;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;cursor:pointer}#idx a:hover{color:var(--acct)}
+@media(max-width:1100px){.slide{padding:2rem 2rem 5.5rem}h1{font-size:2.3rem}.r4{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.slide{padding:1.4rem 1rem 5.5rem}h1{font-size:1.8rem}h2{font-size:1.4rem}.r2,.r3,.r4{grid-template-columns:1fr}.bar{grid-template-columns:90px minmax(0,1fr) 84px;font-size:.75rem}.cols{gap:.25rem}.col span,.col b{font-size:.6rem}table{font-size:.7rem}th,td{padding:.4rem .3rem}.hm{display:none}.big{font-size:2rem}.hero .big{font-size:2.4rem}#idx{padding:2rem 1.2rem}}
+@media print{html,body{overflow:visible;height:auto}.slide{position:relative;opacity:1;transform:none;page-break-after:always;min-height:100vh}.foot,#idx{display:none!important}}`;
+
+const JS_DECK = `(function(){var s=[].slice.call(document.querySelectorAll('.slide')),i=0,c=document.getElementById('cnt'),x=document.getElementById('idx');
+function go(n){n=Math.max(0,Math.min(s.length-1,n));s.forEach(function(e,k){e.classList.toggle('on',k===n);e.classList.toggle('prev',k<n)});i=n;c.textContent=(n+1<10?'0':'')+(n+1)+' / '+s.length;s[n].scrollTop=0}
+document.getElementById('pv').onclick=function(){go(i-1)};document.getElementById('nx').onclick=function(){go(i+1)};document.getElementById('ix').onclick=function(){x.classList.toggle('on')};
+[].forEach.call(x.querySelectorAll('a'),function(a){a.onclick=function(){go(+a.dataset.g);x.classList.remove('on')}});
+var t0=null;document.addEventListener('touchstart',function(e){t0=e.touches[0].clientX},{passive:true});document.addEventListener('touchend',function(e){if(t0===null)return;var d=e.changedTouches[0].clientX-t0;if(Math.abs(d)>70)go(i+(d<0?1:-1));t0=null});
+document.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(i+1)}else if(k==='ArrowLeft'||k==='PageUp'){go(i-1)}else if(k==='Home')go(0);else if(k==='End')go(s.length-1);else if(k==='m'||k==='M')x.classList.toggle('on');else if(k==='Escape')x.classList.remove('on')});go(0)})();`;
+
+function tabelaAbertas(lista, comKm){
+  return `<div class="tw"><table><thead><tr><th>Município</th>${comKm?'<th class="n">Km</th>':''}<th>Objeto</th><th class="hm">Órgão</th><th class="n">Valor</th><th class="n">Encerra</th><th>Edital</th></tr></thead><tbody>${
+    lista.map(it => `<tr><td>${esc(it.municipio_nome)}${comKm?"":" - "+it.uf}</td>${comKm?`<td class="n">${Math.round(it._km)}</td>`:""}<td>${esc(corta(it.description,150))}</td><td class="hm">${esc(titulo(corta(it.orgao_nome,50)))}</td><td class="n">${mi(valorAberta(it))}</td><td class="n">${dm(it.data_fim_vigencia)}</td><td><a href="${esc(linkPncp(it))}" target="_blank" rel="noopener">PNCP</a></td></tr>`).join("")
+  }</tbody></table></div>`;
+}
+
+function montarDeck(cfg, dados){
+  const {lead, contato, ramo, cidade, raio, meses, termos, corte, hoje} = cfg;
+  const o = [cidade[3], cidade[4]];
+  const kmDe = it => { const m = porIbge.get(String(it.codigo_ibge)); return m ? dist(o, [m[3], m[4]]) : Infinity; };
+  const abertas = dados.abertas.map(it => ({...it, _km: kmDe(it)}));
+  const perto = abertas.filter(it => it._km <= raio).sort((a,b) => a._km - b._km || new Date(a.data_fim_vigencia) - new Date(b.data_fim_vigencia));
+  const fora = abertas.filter(it => it._km > raio).sort((a,b) => valorAberta(b) - valorAberta(a));
+  const ctr = dados.contratos.map(it => ({...it, _km: kmDe(it), _v: valorContrato(it)}));
+  const nomeCid = `${cidade[0]}`;
+  const ufsTxt = cfg.ufs.join(", ");
+  const vPerto = soma(perto, valorAberta), vCtr = soma(ctr, x => x._v);
+  const med = mediana(ctr.map(x => x._v));
+  const pequenos = ctr.filter(x => x._v > 0 && x._v <= 50000).length;
+  const grandes = ctr.filter(x => x._v > 1e6), vGrandes = soma(grandes, x => x._v);
+  const fornecedores = agrupar(ctr.filter(x => x.fornecedor_nome), x => titulo(x.fornecedor_nome), x => x._v).sort((a,b) => b.n - a.n || b.v - a.v);
+  const esferas = agrupar(ctr, x => x.esfera_nome, x => x._v).sort((a,b) => b.n - a.n);
+  const prefeituras = ctr.filter(x => x.esfera_id === "M").length;
+  const modal = agrupar(ctr, x => (x.modalidade_licitacao_nome||"").replace(" - Eletrônico"," eletrônico").replace(" - Presencial"," presencial"), x => x._v).sort((a,b) => b.n - a.n);
+  const orgaos = agrupar(ctr, x => titulo(x.orgao_nome), x => x._v).sort((a,b) => b.v - a.v).slice(0, 10);
+  const encerra7 = perto.filter(it => it.data_fim_vigencia && (new Date(it.data_fim_vigencia) - hoje) / 864e5 <= 7).length;
+
+  // por mês
+  const mesesLista = [];
+  for (let d = new Date(corte.getFullYear(), corte.getMonth(), 1); d <= hoje; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) mesesLista.push({key: d.getFullYear()*100 + d.getMonth(), k: MESES[d.getMonth()] + "/" + String(d.getFullYear()).slice(2), n:0, v:0});
+  for (const x of ctr){ const key = x._data.getFullYear()*100 + x._data.getMonth(); const g = mesesLista.find(m => m.key === key); if (g){ g.n++; g.v += x._v; } }
+  // por distância
+  const passo = raio <= 100 ? 25 : 50;
+  const faixas = [];
+  for (let a = 0; a < raio; a += passo) faixas.push({a, b: Math.min(raio, a + passo), k: a === 0 ? `até ${passo} km` : `${a} a ${Math.min(raio, a+passo)} km`, n:0, v:0});
+  for (const x of ctr){ const f = faixas.find(f => x._km >= f.a && x._km <= f.b) || faixas[faixas.length-1]; f.n++; f.v += x._v; }
+  // encerramentos por dia
+  const porDia = agrupar(perto.filter(it => it.data_fim_vigencia), it => it.data_fim_vigencia.slice(0,10), () => 0).sort((a,b) => a.k < b.k ? -1 : 1).slice(0, 14).map(g => ({...g, k: dm(g.k + "T12:00")}));
+  // termos
+  const porTermo = termos.map(t => ({k: t.txt, n: ctr.filter(x => x.termos.has(t.txt)).length, v: soma(ctr.filter(x => x.termos.has(t.txt)), x => x._v), a: perto.filter(x => x.termos.has(t.txt)).length})).sort((a,b) => b.n - a.n);
+  const maiores = [...ctr].sort((a,b) => b._v - a._v).slice(0, 10);
+  const cidadesTop = agrupar(ctr, x => x.municipio_nome, x => x._v).sort((a,b) => b.n - a.n).slice(0, 8);
+
+  const para = lead ? `Preparado para ${esc(lead)}` : "Estudo de mercado público";
+  const slides = [];
+  const S = (eyebrow, h, corpo, idx) => slides.push({idx, html:`<section class="slide"><div class="in"><div class="eyebrow">${eyebrow}</div><h2>${h}</h2>${corpo}</div></section>`});
+
+  slides.push({idx:"Capa", html:`<section class="slide"><div class="in">${LOGO?`<img class="logo" alt="Leandro Oliveira" src="${LOGO}">`:""}<div class="eyebrow">${para}</div>
+    <h1>Oportunidades em <em>${esc(ramo)}</em> na região de ${esc(nomeCid)}</h1>
+    <p class="lead">O que está aberto agora num raio de ${raio} km de ${esc(nomeCid)} e o que órgãos públicos da região contrataram nos últimos ${meses} meses. Dados do Portal Nacional de Contratações Públicas (PNCP), consultados em ${dmy(hoje)}.</p>
+    <div class="row r3"><div class="card"><h3>Parte 1</h3><div class="sub">Licitações abertas para proposta até ${raio} km de ${esc(nomeCid)}</div></div>
+    <div class="card"><h3>Parte 2</h3><div class="sub">Contratos assinados de ${dmy(corte)} a ${dmy(hoje)} no mesmo raio</div></div>
+    <div class="card"><h3>Fonte</h3><div class="sub">PNCP, busca pelos termos do ramo e conferência do objeto de cada processo</div></div></div></div></section>`});
+
+  const destaques = [];
+  if (ctr.length){
+    destaques.push(`${fmtN(ctr.length)} contratos do ramo foram assinados por órgãos públicos num raio de ${raio} km nos últimos ${meses} meses, somando ${mi(vCtr)}.`);
+    if (pequenos) destaques.push(`${pequenos} desses contratos ficam até R$ 50 mil: valores acessíveis para empresas de pequeno e médio porte.`);
+    if (grandes.length && vCtr) destaques.push(`${grandes.length} contratos acima de R$ 1 milhão concentram ${Math.round(100*vGrandes/vCtr)}% do valor.`);
+    if (prefeituras) destaques.push(`Prefeituras e órgãos municipais respondem por ${prefeituras} dos ${ctr.length} contratos.`);
+    if (fornecedores.length) destaques.push(`${fornecedores.length} empresas diferentes venceram. ${fornecedores[0].n > 1 ? `A que mais venceu levou ${fornecedores[0].n} contratos.` : "Nenhuma venceu mais de um contrato."} O mercado é aberto a novos fornecedores.`);
+  }
+  if (perto.length) destaques.push(`${perto.length} licitações estão abertas agora no raio${encerra7 ? `, ${encerra7} delas encerram nos próximos 7 dias` : ""}.`);
+  if (fora.length) destaques.push(`Ampliando para ${ufsTxt}, há mais ${fora.length} processos abertos fora do raio.`);
+  S("Resumo executivo", "O que a região está comprando no seu ramo", `
+    <div class="row r2"><div class="hero"><h3>Abertas agora · até ${raio} km</h3><div class="big">${perto.length} processos</div><div class="sub">Valor estimado somado: ${mi(vPerto)}.${fora.length ? ` Mais ${fora.length} abertos no restante de ${ufsTxt}.` : ""}</div></div>
+    <div class="card"><h3>Contratados nos últimos ${meses} meses · até ${raio} km</h3><div class="big acc">${fmtN(ctr.length)} contratos</div><div class="sub">Valor somado: ${mi(vCtr)}.${med ? ` Mediana de ${mi(med)}.` : ""}</div></div></div>
+    <ul class="l">${destaques.map(d => `<li>${d}</li>`).join("")}</ul>`, "Resumo executivo");
+
+  S("Método", "Como o estudo foi feito", `<div class="row r2">
+    <div class="card"><h3>Parte 1 · Abertas</h3><div class="sub">Busca no PNCP por editais e avisos de contratação em fase de proposta em ${ufsTxt}, em todas as modalidades, com os termos: ${termos.map(t => "“" + esc(t.txt) + "”").join(", ")}. Cada resultado teve o objeto conferido contra os termos.</div></div>
+    <div class="card"><h3>Parte 2 · Últimos ${meses} meses</h3><div class="sub">Contratos publicados no PNCP com assinatura a partir de ${dmy(corte)}, de órgãos sediados em ${cfg.ibgeRaio.size} municípios num raio de ${raio} km de ${esc(nomeCid)}. Mesmos termos e mesma conferência do objeto.</div></div></div>
+    <p class="note">Os valores são do processo ou contrato inteiro. A busca lê o objeto publicado: contratos em que o item aparece só na planilha não entram, então os números são um piso. Distâncias em linha reta a partir do centro de ${esc(nomeCid)}.</p>`, "Como foi feito");
+
+  S(`Parte 1 · Até ${raio} km de ${esc(nomeCid)}`, `${perto.length} processos abertos no raio da região`, perto.length
+    ? `<div class="row r4"><div class="card"><h3>No raio</h3><div class="big acc">${perto.length}</div><div class="sub">${mi(vPerto)}</div></div><div class="card"><h3>Encerram em 7 dias</h3><div class="big">${encerra7}</div></div><div class="card"><h3>No restante de ${ufsTxt}</h3><div class="big">${fora.length}</div><div class="sub">${mi(soma(fora, valorAberta))}</div></div><div class="card"><h3>Municípios</h3><div class="big">${new Set(perto.map(x => x.codigo_ibge)).size}</div></div></div>
+      ${porDia.length ? `<div class="card"><h3>Quantos processos encerram por dia</h3>${colunas(porDia)}</div>` : ""}`
+    : `<p class="lead">Nenhum processo do ramo está recebendo proposta neste raio hoje. Os processos abertos mudam toda semana: veja a Parte 2 para o ritmo de contratação da região.</p>`, "Abertas: o quadro");
+
+  if (perto.length){
+    for (let i = 0; i < perto.length; i += 14){
+      const pag = perto.slice(i, i + 14);
+      S(`Parte 1 · Lista${perto.length > 14 ? ` (${i/14+1}/${Math.ceil(perto.length/14)})` : ""}`, `Abertas até ${raio} km de ${esc(nomeCid)}`, tabelaAbertas(pag, true) + `<p class="note">Km em linha reta a partir de ${esc(nomeCid)}. Confira prazos e exigências no edital antes de participar.</p>`, i ? null : "Abertas perto do lead");
+    }
+  }
+  if (fora.length){
+    S(`Parte 1 · Restante de ${ufsTxt}`, `Os maiores processos abertos fora do raio`, tabelaAbertas(fora.slice(0, 14), false) + (fora.length > 14 ? `<p class="note">Mostrando os 14 de maior valor entre ${fora.length}.</p>` : ""), "Abertas no estado");
+  }
+
+  if (ctr.length){
+    S(`Parte 2 · Últimos ${meses} meses em ${raio} km`, `${fmtN(ctr.length)} contratos, ${mi(vCtr)} em ${meses} meses`, `<div class="row r4">
+      <div class="card"><h3>Contratos</h3><div class="big acc">${fmtN(ctr.length)}</div></div>
+      <div class="card"><h3>Valor somado</h3><div class="big">${mi(vCtr)}</div></div>
+      <div class="card"><h3>Mediana</h3><div class="big">${mi(med)}</div></div>
+      <div class="card"><h3>Fornecedores</h3><div class="big">${fornecedores.length}</div></div></div>
+      <div class="card"><h3>Por termo do ramo</h3>${barras(porTermo.filter(t => t.n), g => mi(g.v))}</div>`, "Parte 2: números");
+    S("Parte 2 · Sazonalidade", "Contratos por mês de assinatura", `<div class="card">${colunas(mesesLista)}</div><p class="note">Contratos publicados com atraso no PNCP podem ainda não aparecer nos meses mais recentes.</p>`, "Mês a mês");
+    S("Parte 2 · Onde estão os contratos", `Distância a partir de ${esc(nomeCid)}`, `<div class="row r2"><div class="card"><h3>Por faixa de distância</h3>${barras(faixas, g => mi(g.v))}</div><div class="card"><h3>Municípios com mais contratos</h3>${barras(cidadesTop, g => mi(g.v))}</div></div>`, "Onde");
+    S("Parte 2 · Quem compra", "Quem são os compradores da região", `<div class="row r2"><div class="card"><h3>Por esfera</h3>${barras(esferas, g => mi(g.v))}</div><div class="card"><h3>Órgãos que mais gastaram</h3>${barras(orgaos.map(g => ({...g, k: corta(g.k, 34)})), g => mi(g.v))}</div></div>`, "Quem compra");
+    S("Parte 2 · Como compram", "Modalidade de contratação", `<div class="card">${barras(modal, g => mi(g.v))}</div><p class="note">Dispensa costuma ser rápida e de valor baixo, um bom ponto de entrada. Concorrência e pregão concentram os contratos maiores.</p>`, "Como compram");
+    S("Parte 2 · Maiores contratos", `Os ${maiores.length} maiores contratos do ramo`, `<div class="tw"><table><thead><tr><th>Município</th><th class="n">Km</th><th>Objeto</th><th>Fornecedor</th><th class="n">Valor</th><th class="n hm">Assinado</th><th></th></tr></thead><tbody>${
+      maiores.map(x => `<tr><td>${esc(x.municipio_nome)}</td><td class="n">${Math.round(x._km)}</td><td>${esc(corta(x.description, 130))}</td><td>${esc(titulo(corta(x.fornecedor_nome, 40)))}</td><td class="n">${mi(x._v)}</td><td class="n hm">${dmy(x._data)}</td><td><a href="${esc(linkPncp(x))}" target="_blank" rel="noopener">PNCP</a></td></tr>`).join("")}</tbody></table></div>`, "Maiores contratos");
+    if (fornecedores.length){
+      S("Parte 2 · Quem ganhou", fornecedores[0].n > 2 ? "Quem mais vence na região" : "Mercado pulverizado, com espaço para novos fornecedores", `<div class="tw"><table><thead><tr><th>Fornecedor</th><th class="n">Contratos</th><th class="n">Valor somado</th></tr></thead><tbody>${
+        fornecedores.slice(0, 12).map(f => `<tr><td>${esc(corta(f.k, 70))}</td><td class="n">${f.n}</td><td class="n">${mi(f.v)}</td></tr>`).join("")}</tbody></table></div><p class="note">${fornecedores.length} empresas diferentes em ${ctr.filter(x => x.fornecedor_nome).length} contratos com fornecedor informado.</p>`, "Quem ganhou");
+    }
+  } else {
+    S(`Parte 2 · Últimos ${meses} meses`, "Nenhum contrato encontrado no raio", `<p class="lead">A busca não encontrou contratos do ramo publicados no PNCP neste raio e período. Vale testar termos diferentes ou um raio maior.</p>`, "Parte 2");
+  }
+
+  const leitura = [];
+  if (ctr.length) leitura.push(`A região contrata ${ramo} com frequência: em média ${(ctr.length / meses).toLocaleString("pt-BR",{maximumFractionDigits:1})} contratos por mês no raio de ${raio} km.`);
+  if (pequenos) leitura.push(`Boa parte dos contratos é de valor baixo, compatível com a capacidade de empresas locais e com dispensas de licitação, que têm rito mais simples.`);
+  if (fornecedores.length > 3) leitura.push(`Com ${fornecedores.length} vencedores diferentes, não há um fornecedor dominante: quem se cadastra e acompanha os editais tem chance real.`);
+  if (perto.length) leitura.push(`Há ${perto.length} oportunidades abertas agora perto de ${esc(nomeCid)}. Participar exige cadastro nos portais, documentação de habilitação em dia e proposta dentro do prazo.`);
+  leitura.push(`Vender ao governo envolve regras próprias: habilitação, impugnação de edital, recursos, reequilíbrio de preços e defesa em processos sancionatórios. Assessoria jurídica especializada reduz o risco e aumenta a taxa de vitória.`);
+  S("Leitura dos dados", `O que os números indicam para ${lead ? esc(lead) : "a sua empresa"}`, `<ul class="l">${leitura.map(l => `<li>${l}</li>`).join("")}</ul>`, "Leitura");
+
+  S("Fontes e limites", "O que este estudo não faz", `<ul class="l">
+    <li>Fonte: Portal Nacional de Contratações Públicas (pncp.gov.br), consultado em ${dmy(hoje)}. Órgãos que ainda não publicam no PNCP não aparecem.</li>
+    <li>A busca depende dos termos escolhidos e do texto do objeto publicado. Processos descritos de forma genérica podem ficar de fora.</li>
+    <li>Não lê os editais em PDF. Prazos, valores e exigências devem ser conferidos no edital de cada processo.</li>
+    ${dados.limitados ? `<li>Alguns termos tiveram mais resultados do que o limite de consulta. Os números podem estar abaixo do total real.</li>` : ""}
+  </ul><p class="note">Estudo exclusivamente informativo, sem qualquer garantia de resultado em certames específicos. Leandro Oliveira, advocacia para empresas que vendem ao governo.</p>`, "Limites e fontes");
+
+  const indice = slides.map((s, i) => s.idx ? `<a data-g="${i}">${String(i+1).padStart(2,"0")} &nbsp; ${esc(s.idx)}</a>` : "").join("");
+  const tit = `Estudo de mercado: ${ramo} na região de ${nomeCid}`;
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(tit)}</title><style>${CSS_DECK}</style></head><body>${slides.map(s => s.html).join("")}<div class="foot"><button id="pv">Anterior</button><span id="cnt"></span><span><button id="ix">Índice</button> <button id="nx">Próximo</button></span></div><div id="idx"><div class="eyebrow" style="margin-bottom:1rem">Índice</div>${indice}</div><script>${JS_DECK}<\/script></body></html>`;
+
+  const saud = contato ? `Olá, ${contato}! Tudo bem?` : "Olá! Tudo bem?";
+  const msg = `${saud}\n\nPreparei um estudo rápido de licitações em ${ramo} na região de ${nomeCid}${lead ? `, pensando na ${lead}` : ""}:\n\n` +
+    (perto.length ? `• ${perto.length} licitações abertas agora num raio de ${raio} km (${mi(vPerto)} estimados)${encerra7 ? `, ${encerra7} encerrando nos próximos 7 dias` : ""}\n` : "") +
+    (ctr.length ? `• ${fmtN(ctr.length)} contratos assinados nos últimos ${meses} meses na região, somando ${mi(vCtr)}\n` : "") +
+    (fornecedores.length ? `• ${fornecedores.length} empresas diferentes venceram, ou seja, o mercado está aberto\n` : "") +
+    `\nO arquivo em anexo traz a lista com os links de cada edital. Se quiser, posso te mostrar como participar com segurança jurídica.`;
+  return {html, msg, arquivo: `estudo-${slug(ramo)}-${slug(nomeCid)}-${hoje.toISOString().slice(0,10)}.html`};
+}
+const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+
+// ---------- fluxo ----------
+let atual = null;
+$("gerar").addEventListener("click", async () => {
+  aoDigitarCidade();
+  if (!origem){ alert("Escolha a cidade do lead na lista (ex.: Campinas - SP)."); $("cidade").focus(); return; }
+  const termos = termosDe($("termos").value);
+  EXCLUIR = termosDe($("excluir").value);
+  if (!termos.length){ alert("Escolha um ramo ou digite os termos de busca."); $("termos").focus(); return; }
+  const raio = +$("raio").value, meses = +$("meses").value;
+  const hoje = new Date(), corte = new Date(hoje.getFullYear(), hoje.getMonth() - meses, hoje.getDate());
+  const o = [origem[3], origem[4]];
+  const noRaio = MUN.filter(m => dist(o, [m[3], m[4]]) <= raio);
+  const ufs = [origem[1], ...new Set(noRaio.map(m => m[1]).filter(u => u !== origem[1]))];
+  const cfg = {lead: $("lead").value.trim(), contato: $("contato").value.trim(), ramo: $("ramo").value.trim() || termos[0].txt,
+    cidade: origem, raio, meses, termos, ufs, ibgeRaio: new Set(noRaio.map(m => String(m[2]))), corte, hoje};
+  $("gerar").disabled = true; $("saida").classList.remove("on"); reqs = 0;
+  try {
+    const dados = await coletar(cfg);
+    atual = montarDeck(cfg, dados);
+    $("preview").srcdoc = atual.html;
+    $("msg").value = atual.msg;
+    $("saida").classList.add("on");
+    $("saida").scrollIntoView({behavior:"smooth"});
+  } catch (e) {
+    $("progTxt").innerHTML = `<span class="erro">${esc(e.message)}</span>`;
+  } finally { $("gerar").disabled = false; }
+});
+$("baixar").addEventListener("click", () => {
+  if (!atual) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([atual.html], {type:"text/html"}));
+  a.download = atual.arquivo; document.body.appendChild(a); a.click(); a.remove();
+});
+$("abrir").addEventListener("click", () => { if (atual) window.open(URL.createObjectURL(new Blob([atual.html], {type:"text/html"})), "_blank"); });
+$("pdf").addEventListener("click", () => { const w = $("preview").contentWindow; if (w){ w.focus(); w.print(); } });
+$("copiar").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("msg").value); $("copiado").textContent = "Copiada."; }
+  catch { $("msg").select(); document.execCommand("copy"); $("copiado").textContent = "Copiada."; }
+});
+
+// ---------- leads salvos (só neste navegador) ----------
+const CHAVE = "estudo-leads";
+const lerLeads = () => { try { return JSON.parse(localStorage.getItem(CHAVE)) || []; } catch { return []; } };
+const gravarLeads = l => { try { localStorage.setItem(CHAVE, JSON.stringify(l)); } catch {} };
+function mostrarLeads(){
+  const l = lerLeads();
+  $("boxLeads").hidden = !l.length;
+  $("leads").innerHTML = l.map((x, i) => `<span><button data-i="${i}">${esc(x.lead || x.cidade)} · ${esc(x.cidade)}</button><button class="x" data-del="${i}" title="Remover">×</button></span>`).join("");
+}
+$("salvar").addEventListener("click", () => {
+  const x = {lead:$("lead").value.trim(), contato:$("contato").value.trim(), cidade:$("cidade").value.trim(), raio:$("raio").value, meses:$("meses").value, ramo:$("ramo").value.trim(), termos:$("termos").value.trim(), excluir:$("excluir").value.trim()};
+  if (!x.cidade){ alert("Preencha ao menos a cidade."); return; }
+  const l = lerLeads().filter(y => !(y.lead === x.lead && y.cidade === x.cidade));
+  l.unshift(x); gravarLeads(l.slice(0, 50)); mostrarLeads();
+});
+$("leads").addEventListener("click", ev => {
+  const l = lerLeads();
+  if (ev.target.dataset.del != null){ l.splice(+ev.target.dataset.del, 1); gravarLeads(l); mostrarLeads(); return; }
+  const x = l[+ev.target.dataset.i]; if (!x) return;
+  for (const k of ["lead","contato","cidade","raio","meses","ramo","termos","excluir"]) if (x[k] != null) $(k).value = x[k];
+  aoDigitarCidade();
+});
+mostrarLeads();
+
+// ---------- parâmetros vindos do Buscar Editais ----------
+const P = new URLSearchParams(location.search);
+if (P.get("cidade")){ $("cidade").value = P.get("cidade") + (P.get("uf") ? " - " + P.get("uf") : ""); aoDigitarCidade(); }
+if (P.get("raio") && [...$("raio").options].some(o => o.value === P.get("raio"))) $("raio").value = P.get("raio");
+if (P.get("termos")) $("termos").value = P.get("termos");
+if (P.get("ramo")) $("ramo").value = P.get("ramo");
+</script>
+</body>
+</html>
