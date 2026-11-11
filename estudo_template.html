@@ -358,9 +358,53 @@ document.getElementById('pv').onclick=function(){go(i-1)};document.getElementByI
 var t0=null;document.addEventListener('touchstart',function(e){t0=e.touches[0].clientX},{passive:true});document.addEventListener('touchend',function(e){if(t0===null)return;var d=e.changedTouches[0].clientX-t0;if(Math.abs(d)>70)go(i+(d<0?1:-1));t0=null});
 document.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(i+1)}else if(k==='ArrowLeft'||k==='PageUp'){go(i-1)}else if(k==='Home')go(0);else if(k==='End')go(s.length-1);else if(k==='m'||k==='M')x.classList.toggle('on');else if(k==='Escape')x.classList.remove('on')});go(0)})();`;
 
+// ---------- portal de compras onde a disputa acontece ----------
+// 1º pelo endereço do sistema de origem, 2º pelo sistema que publicou no PNCP
+const PORTAIS_DOMINIO = [
+  [/serpro\.gov\.br|comprasnet|compras\.gov\.br|gov\.br\/compras/, "Compras.gov.br"],
+  [/ammlicita/, "AMM Licita"],
+  [/licitardigital/, "Licitar Digital"],
+  [/bll(compras)?\.(com|org)/, "BLL Compras"],
+  [/portaldecompraspublicas/, "Portal de Compras Públicas"],
+  [/bnccompras|bnc\.org/, "BNC"],
+  [/comprasbr\.com/, "ComprasBR"],
+  [/licitanet/, "Licitanet"],
+  [/bbmnet/, "BBMNET"],
+  [/licitacoes-e|bb\.com\.br/, "Licitações-e (Banco do Brasil)"],
+  [/compras\.mg\.gov\.br/, "Portal de Compras MG"],
+  [/bec\.sp\.gov\.br|compras\.sp\.gov\.br/, "BEC / Compras SP"],
+  [/compraspr|comprasparana|pr\.gov\.br\/compras/, "Compras Paraná"],
+  [/comprasnet\.ba|saeb\.ba/, "Compras BA"],
+  [/publinexo/, "Publinexo"],
+  [/licitamaisbrasil/, "Licita Mais Brasil"],
+  [/novobbmnet/, "BBMNET"],
+  [/bolsadelicitacoes|blicitacoes/, "Bolsa de Licitações"],
+  [/compraaberta\.jundiai/, "Compra Aberta Jundiaí"],
+];
+const PORTAIS_SISTEMA = [
+  [/compras\.gov/, "Compras.gov.br"], [/licitar digital/, "Licitar Digital"], [/bll/, "BLL Compras"],
+  [/ecustomize|portal de compras publicas/, "Portal de Compras Públicas"], [/bolsa nacional|bnc/, "BNC"],
+  [/licitanet/, "Licitanet"], [/bbmnet/, "BBMNET"], [/compras do estado de minas/, "Portal de Compras MG"],
+  [/comprasbr|az informatica/, "ComprasBR"],
+];
+function portal(it){
+  let host = "";
+  try { host = new URL(it.link_sistema_origem).hostname.replace(/^www\d?\./, ""); } catch {}
+  const url = it.link_sistema_origem || "";
+  for (const [re, nome] of PORTAIS_DOMINIO) if (re.test(url.toLowerCase())) return {nome, url};
+  const pref = (it.description || "").match(/^\s*\[([^\]]{3,40})\]/);
+  if (pref) return {nome: pref[1].trim(), url};
+  const sis = norm(it.usuario_nome);
+  for (const [re, nome] of PORTAIS_SISTEMA) if (re.test(sis)) return {nome, url};
+  if (/presencial/i.test(it.modalidade_licitacao_nome || "")) return {nome: "Presencial no órgão", url};
+  if (host) return {nome: "Site do órgão (" + host + ")", url, proprio: true};
+  return {nome: "Sistema próprio do órgão", url: "", proprio: true};
+}
+const semPrefixo = s => String(s || "").replace(/^\s*\[[^\]]{3,40}\]\s*-?\s*/, "");
+
 function tabelaAbertas(lista, comKm){
-  return `<div class="tw"><table><thead><tr><th>Município</th>${comKm?'<th class="n">Km</th>':''}<th>Objeto</th><th class="hm">Órgão</th><th class="n">Valor</th><th class="n">Encerra</th><th>Edital</th></tr></thead><tbody>${
-    lista.map(it => `<tr><td>${esc(it.municipio_nome)}${comKm?"":" - "+it.uf}</td>${comKm?`<td class="n">${Math.round(it._km)}</td>`:""}<td>${esc(corta(it.description,150))}</td><td class="hm">${esc(titulo(corta(it.orgao_nome,50)))}</td><td class="n">${mi(valorAberta(it))}</td><td class="n">${dm(it.data_fim_vigencia)}</td><td><a href="${esc(linkPncp(it))}" target="_blank" rel="noopener">PNCP</a></td></tr>`).join("")
+  return `<div class="tw"><table><thead><tr><th>Município</th>${comKm?'<th class="n">Km</th>':''}<th>Objeto</th><th class="hm">Órgão</th><th class="n">Valor</th><th class="n">Encerra</th><th>Portal da disputa</th><th>Edital</th></tr></thead><tbody>${
+    lista.map(it => { const p = portal(it); return `<tr><td>${esc(it.municipio_nome)}${comKm?"":" - "+it.uf}</td>${comKm?`<td class="n">${Math.round(it._km)}</td>`:""}<td>${esc(corta(semPrefixo(it.description),150))}</td><td class="hm">${esc(titulo(corta(it.orgao_nome,50)))}</td><td class="n">${mi(valorAberta(it))}</td><td class="n">${dm(it.data_fim_vigencia)}</td><td>${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.nome)}</a>` : esc(p.nome)}</td><td><a href="${esc(linkPncp(it))}" target="_blank" rel="noopener">PNCP</a></td></tr>`; }).join("")
   }</tbody></table></div>`;
 }
 
@@ -443,6 +487,20 @@ function montarDeck(cfg, dados){
       S(`Parte 1 · Lista${perto.length > 14 ? ` (${i/14+1}/${Math.ceil(perto.length/14)})` : ""}`, `Abertas até ${raio} km de ${esc(nomeCid)}`, tabelaAbertas(pag, true) + `<p class="note">Km em linha reta a partir de ${esc(nomeCid)}. Confira prazos e exigências no edital antes de participar.</p>`, i ? null : "Abertas perto do lead");
     }
   }
+  const basePortal = perto.length ? perto : abertas;
+  const portais = agrupar(basePortal, it => { const p = portal(it); return p.proprio ? "Site ou sistema próprio do órgão" : p.nome; }, valorAberta).sort((a,b) => b.n - a.n || b.v - a.v);
+  const portaisNomes = portais.filter(g => !/próprio|Presencial/.test(g.k)).map(g => g.k);
+  if (basePortal.length){
+    S("Parte 1 · Onde participar", portaisNomes.length > 1 ? `As licitações abertas estão em ${portaisNomes.length} portais diferentes` : "Em qual portal acontece a disputa",
+      `<div class="row r2"><div class="card"><h3>Portal da disputa · ${perto.length ? `até ${raio} km` : `${ufsTxt}`}</h3>${barras(portais, g => mi(g.v))}</div>
+      <div class="card"><h3>O que isso significa</h3><ul class="l" style="margin-top:.8rem">
+        <li>Cada portal exige cadastro próprio da empresa, com certificado digital e documentos de habilitação.</li>
+        <li>Quem só está cadastrado no Compras.gov.br perde as disputas de prefeituras que usam ${esc(portaisNomes.filter(n => n !== "Compras.gov.br").slice(0,3).join(", ") || "outros portais")}.</li>
+        <li>Alguns portais cobram taxa por participação ou assinatura. Vale escolher onde estar a partir dos órgãos que compram o seu ramo.</li>
+      </ul></div></div>
+      <p class="note">Portal identificado pelo link do sistema de origem informado ao PNCP. Confira no edital, que sempre indica o endereço da sessão pública.</p>`, "Onde participar");
+  }
+
   if (fora.length){
     S(`Parte 1 · Restante de ${ufsTxt}`, `Os maiores processos abertos fora do raio`, tabelaAbertas(fora.slice(0, 14), false) + (fora.length > 14 ? `<p class="note">Mostrando os 14 de maior valor entre ${fora.length}.</p>` : ""), "Abertas no estado");
   }
@@ -459,7 +517,7 @@ function montarDeck(cfg, dados){
     S("Parte 2 · Quem compra", "Quem são os compradores da região", `<div class="row r2"><div class="card"><h3>Por esfera</h3>${barras(esferas, g => mi(g.v))}</div><div class="card"><h3>Órgãos que mais gastaram</h3>${barras(orgaos.map(g => ({...g, k: corta(g.k, 34)})), g => mi(g.v))}</div></div>`, "Quem compra");
     S("Parte 2 · Como compram", "Modalidade de contratação", `<div class="card">${barras(modal, g => mi(g.v))}</div><p class="note">Dispensa costuma ser rápida e de valor baixo, um bom ponto de entrada. Concorrência e pregão concentram os contratos maiores.</p>`, "Como compram");
     S("Parte 2 · Maiores contratos", `Os ${maiores.length} maiores contratos do ramo`, `<div class="tw"><table><thead><tr><th>Município</th><th class="n">Km</th><th>Objeto</th><th>Fornecedor</th><th class="n">Valor</th><th class="n hm">Assinado</th><th></th></tr></thead><tbody>${
-      maiores.map(x => `<tr><td>${esc(x.municipio_nome)}</td><td class="n">${Math.round(x._km)}</td><td>${esc(corta(x.description, 130))}</td><td>${esc(titulo(corta(x.fornecedor_nome, 40)))}</td><td class="n">${mi(x._v)}</td><td class="n hm">${dmy(x._data)}</td><td><a href="${esc(linkPncp(x))}" target="_blank" rel="noopener">PNCP</a></td></tr>`).join("")}</tbody></table></div>`, "Maiores contratos");
+      maiores.map(x => `<tr><td>${esc(x.municipio_nome)}</td><td class="n">${Math.round(x._km)}</td><td>${esc(corta(semPrefixo(x.description), 130))}</td><td>${esc(titulo(corta(x.fornecedor_nome, 40)))}</td><td class="n">${mi(x._v)}</td><td class="n hm">${dmy(x._data)}</td><td><a href="${esc(linkPncp(x))}" target="_blank" rel="noopener">PNCP</a></td></tr>`).join("")}</tbody></table></div>`, "Maiores contratos");
     if (fornecedores.length){
       S("Parte 2 · Quem ganhou", fornecedores[0].n > 2 ? "Quem mais vence na região" : "Mercado pulverizado, com espaço para novos fornecedores", `<div class="tw"><table><thead><tr><th>Fornecedor</th><th class="n">Contratos</th><th class="n">Valor somado</th></tr></thead><tbody>${
         fornecedores.slice(0, 12).map(f => `<tr><td>${esc(corta(f.k, 70))}</td><td class="n">${f.n}</td><td class="n">${mi(f.v)}</td></tr>`).join("")}</tbody></table></div><p class="note">${fornecedores.length} empresas diferentes em ${ctr.filter(x => x.fornecedor_nome).length} contratos com fornecedor informado.</p>`, "Quem ganhou");
@@ -472,7 +530,7 @@ function montarDeck(cfg, dados){
   if (ctr.length) leitura.push(`A região contrata ${ramo} com frequência: em média ${(ctr.length / meses).toLocaleString("pt-BR",{maximumFractionDigits:1})} contratos por mês no raio de ${raio} km.`);
   if (pequenos) leitura.push(`Boa parte dos contratos é de valor baixo, compatível com a capacidade de empresas locais e com dispensas de licitação, que têm rito mais simples.`);
   if (fornecedores.length > 3) leitura.push(`Com ${fornecedores.length} vencedores diferentes, não há um fornecedor dominante: quem se cadastra e acompanha os editais tem chance real.`);
-  if (perto.length) leitura.push(`Há ${perto.length} oportunidades abertas agora perto de ${esc(nomeCid)}. Participar exige cadastro nos portais, documentação de habilitação em dia e proposta dentro do prazo.`);
+  if (perto.length) leitura.push(`Há ${perto.length} oportunidades abertas agora perto de ${esc(nomeCid)}${portaisNomes.length > 1 ? `, espalhadas por ${portaisNomes.length} portais de compras` : ""}. Participar exige cadastro em cada portal, documentação de habilitação em dia e proposta dentro do prazo.`);
   leitura.push(`Vender ao governo envolve regras próprias: habilitação, impugnação de edital, recursos, reequilíbrio de preços e defesa em processos sancionatórios. Assessoria jurídica especializada reduz o risco e aumenta a taxa de vitória.`);
   S("Leitura dos dados", `O que os números indicam para ${lead ? esc(lead) : "a sua empresa"}`, `<ul class="l">${leitura.map(l => `<li>${l}</li>`).join("")}</ul>`, "Leitura");
 
@@ -492,6 +550,7 @@ function montarDeck(cfg, dados){
     (perto.length ? `• ${perto.length} licitações abertas agora num raio de ${raio} km (${mi(vPerto)} estimados)${encerra7 ? `, ${encerra7} encerrando nos próximos 7 dias` : ""}\n` : "") +
     (ctr.length ? `• ${fmtN(ctr.length)} contratos assinados nos últimos ${meses} meses na região, somando ${mi(vCtr)}\n` : "") +
     (fornecedores.length ? `• ${fornecedores.length} empresas diferentes venceram, ou seja, o mercado está aberto\n` : "") +
+    (portaisNomes.length ? `• As disputas acontecem em ${portaisNomes.length > 1 ? portaisNomes.length + " portais diferentes (" + portaisNomes.slice(0,4).join(", ") + ")" : "no portal " + portaisNomes[0]}\n` : "") +
     `\nO arquivo em anexo traz a lista com os links de cada edital. Se quiser, posso te mostrar como participar com segurança jurídica.`;
   return {html, msg, arquivo: `estudo-${slug(ramo)}-${slug(nomeCid)}-${hoje.toISOString().slice(0,10)}.html`};
 }
