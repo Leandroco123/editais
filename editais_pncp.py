@@ -119,7 +119,7 @@ def _get(params: dict, tentativas: int = 8) -> dict:
                     return {"data": [], "totalPaginas": 0}
                 corpo = r.read()
                 return json.loads(corpo) if corpo else {"data": [], "totalPaginas": 0}
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+        except (urllib.error.URLError, TimeoutError, ConnectionError, json.JSONDecodeError) as e:
             if isinstance(e, urllib.error.HTTPError) and e.code < 500 and e.code != 429:
                 raise
             if i == tentativas - 1:
