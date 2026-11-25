@@ -3,8 +3,8 @@
 Sem dependências externas (só biblioteca padrão; Python 3.9+).
 
 Uso:
-    python3 editais_pncp.py coletar            # baixa do PNCP e atualiza 'Buscar Editais.html'
-    python3 editais_pncp.py app                # só regera 'Buscar Editais.html' e 'estudo.html'
+    python3 editais_pncp.py coletar            # baixa do PNCP e atualiza 'Buscador de Editais.html'
+    python3 editais_pncp.py app                # só regera 'Buscador de Editais.html' e 'estudo.html'
     python3 editais_pncp.py estudo             # só regera 'estudo.html' (estudo de mercado para o lead)
     python3 editais_pncp.py atualizar_coords   # reaplica municipios_coords.csv sem recoletar
     python3 editais_pncp.py entorno BA "Porto Seguro" 100
@@ -250,11 +250,11 @@ def atualizar_coords() -> None:
 
 ARQUIVO_TEMPLATE = BASE / "app_template.html"
 # No GitHub Actions, SAIDA_APP=site/index.html; no Mac, o app fica na pasta principal
-ARQUIVO_APP = Path(os.environ["SAIDA_APP"]) if os.environ.get("SAIDA_APP") else BASE.parent / "Buscar Editais.html"
+ARQUIVO_APP = Path(os.environ["SAIDA_APP"]) if os.environ.get("SAIDA_APP") else BASE.parent / "Buscador de Editais.html"
 
 
 def gerar_app() -> None:
-    """Gera 'Buscar Editais.html' (abre com dois cliques, funciona sem internet) com os dados embutidos."""
+    """Gera 'Buscador de Editais.html' (abre com dois cliques, funciona sem internet) com os dados embutidos."""
     editais = []
     with open(ARQUIVO_EDITAIS, encoding="utf-8-sig") as f:
         for r in csv.DictReader(f, delimiter=";"):
@@ -312,7 +312,7 @@ def gerar_estudo() -> None:
         caminho = BASE / arquivo
         uri = "data:image/png;base64," + base64.b64encode(caminho.read_bytes()).decode() if caminho.exists() else ""
         html = html.replace(marcador, uri)
-    # No Mac o app se chama 'Buscar Editais.html'; no site, index.html
+    # No Mac o app se chama 'Buscador de Editais.html'; no site, index.html
     html = html.replace('href="./index.html"', f'href="./{urllib.parse.quote(ARQUIVO_APP.name)}"')
     ARQUIVO_ESTUDO.write_text(html, encoding="utf-8")
     print(f"Estudo atualizado: {ARQUIVO_ESTUDO}")
