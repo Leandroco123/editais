@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estudo para Lead</title>
+<title>Buscador de Editais</title>
 <link rel="icon" href="__FAVICON__">
 <style>
 /* Paleta Leandro Oliveira Advogados: off-white #EFEEE8, preto #0B151C, laranja #D96725 */
@@ -64,8 +64,8 @@ textarea{min-height:60px;resize:vertical}
       <img class="logo-escuro" src="__LOGO_ESCURO__" alt="Leandro Oliveira Advogados">
     </div>
     <div class="titulo">
-      <h1>Estudo de oportunidades para o lead</h1>
-      <div class="sub">Dados ao vivo do PNCP · <a href="./index.html" id="voltar">voltar para Buscador de Editais</a></div>
+      <h1>Buscador de Editais</h1>
+      <div class="sub">Estudo de oportunidades para o lead · dados ao vivo do PNCP</div>
     </div>
   </header>
 
@@ -181,7 +181,7 @@ $("presets").addEventListener("click", ev => {
   [...$("presets").children].forEach(b => b.classList.toggle("on", b.dataset.k === k));
 });
 
-// ---------- busca por termo (mesma regra do Buscador de Editais) ----------
+// ---------- busca por termo ----------
 const STOP = new Set(["de","da","do","das","dos","e","para","com","em","a","o","as","os","no","na","nos","nas","por"]);
 function radical(w){ if (w.length>3 && w.endsWith("s")) w = w.slice(0,-1); if (w.length>5 && /[aeo]$/.test(w)) w = w.slice(0,-1); return w; }
 const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -620,7 +620,7 @@ $("leads").addEventListener("click", ev => {
 });
 mostrarLeads();
 
-// ---------- parâmetros vindos do Buscador de Editais ----------
+// ---------- parâmetros na URL (?cidade=&uf=&raio=&termos=&ramo=) ----------
 const P = new URLSearchParams(location.search);
 if (P.get("cidade")){ $("cidade").value = P.get("cidade") + (P.get("uf") ? " - " + P.get("uf") : ""); aoDigitarCidade(); }
 if (P.get("raio") && [...$("raio").options].some(o => o.value === P.get("raio"))) $("raio").value = P.get("raio");
